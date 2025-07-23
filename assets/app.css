@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@tailwind utilities;
+@plugin "daisyui";
+
+* {
+    outline-offset: unset;
+    outline-width: 1px;
+}
