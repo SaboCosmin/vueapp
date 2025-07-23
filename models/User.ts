@@ -1,14 +1,16 @@
-import { string } from "~/utils/form-fields/string.decorator";
-import { select } from "~/utils/form-fields/select.decorator";
-import { boolean } from "~/utils/form-fields/boolean.decorator";
-import { Entity } from "~/utils/entity.decorator";
+import { Entity, primaryKey, descriptor } from '~/utils/entity-system';
+import {
+    string,
+    select,
+    boolean,
+    hasOne,
+    hasMany,
+    disabled,
+    clear
+} from '~/utils/ui-metadata';
 
 import * as yup from 'yup';
-import { hasOne } from "~/utils/form-fields/hasOne.decorator";
-import { hasMany } from "~/utils/form-fields/hasMany.decorator";
-import Product from "~/models/Product";
-import { descriptor, primaryKey } from "~/utils/entity-system";
-import { disabled } from "~/utils/disabled.decorator";
+import Product from '~/models/Product';
 
 @Entity({name: 'User'})
 export default class User {

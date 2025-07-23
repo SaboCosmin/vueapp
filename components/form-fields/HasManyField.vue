@@ -63,7 +63,6 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { getEntityModel } from '~/utils/entity-system';
 
 const props = defineProps<{
-  // Add a default value to prevent the .length error
   modelValue: { id: any; [key: string]: any }[];
   relatedEntityClass: any;
   relatedData: { id: any; [key: string]: any }[];
@@ -72,10 +71,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue']);
 
-// Safely get the entity name at runtime
 const relatedEntityName = getEntityModel(props.relatedEntityClass)?.name || '';
 
-// --- Component State ---
 const isOpen = ref(false);
 const searchTerm = ref('');
 const multiselectWrapper = ref<HTMLElement | null>(null);
@@ -83,7 +80,6 @@ const modalRef = ref<HTMLDialogElement | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
 const temporarySelection = ref<{ id: any; [key: string]: any }[]>([]);
 
-// --- Computed Properties ---
 const placeholderText = computed(() => (props.modelValue || []).length > 0 ? '' : `Select ${relatedEntityName}`);
 
 const filteredOptions = computed(() => {
@@ -93,7 +89,6 @@ const filteredOptions = computed(() => {
   );
 });
 
-// --- Methods ---
 const toggleDropdown = () => {
   isOpen.value = !isOpen.value;
   if (isOpen.value) inputRef.value?.focus();
@@ -117,7 +112,6 @@ const removeItem = (itemToRemove: { id: any }) => {
   emit('update:modelValue', (props.modelValue || []).filter((item) => item.id !== itemToRemove.id));
 };
 
-// --- Advanced Search Modal Logic ---
 const openAdvancedSearch = () => {
   temporarySelection.value = [...(props.modelValue || [])];
   modalRef.value?.showModal();
@@ -133,7 +127,6 @@ const cancelAdvancedSearch = () => {
   modalRef.value?.close();
 };
 
-// --- Lifecycle & Event Handlers ---
 const handleClickOutside = (event: MouseEvent) => {
   if (multiselectWrapper.value && !multiselectWrapper.value.contains(event.target as Node)) {
     closeDropdown();
