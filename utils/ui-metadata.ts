@@ -4,6 +4,7 @@ import * as yup from 'yup';
 export const METADATA_KEY = 'model:form-fields';
 export type FieldType = 'string' | 'number' | 'boolean' | 'select' | 'hasOne' | 'hasMany' | 'custom';
 export const ENTITY_REGISTRY = new Map<any, EntityMetadata>();
+export const ENTITY_NAME_REGISTRY = new Map<string, any>();
 export type ConditionExpression = (formData: Record<string, any>) => boolean;
 import type { AnySchema } from 'yup';
 

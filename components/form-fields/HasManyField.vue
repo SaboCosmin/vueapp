@@ -126,24 +126,8 @@ const selectedItems = ref<any[]>([]);
  * @returns The entity class or undefined if not found
  */
 const findEntityClassByName = (entityName: string): any | undefined => {
-  if (!entityName) {
-    console.warn('Entity name is empty or undefined');
-    return undefined;
-  }
-  
-  // Case-insensitive comparison to be more forgiving
-  const normalizedName = entityName.trim();
-  
-  for (const [entityClass, metadata] of ENTITY_REGISTRY.entries()) {
-    if (metadata.name === normalizedName || 
-        metadata.name.toLowerCase() === normalizedName.toLowerCase()) {
-      return entityClass;
-    }
-  }
-  
-  console.warn(`Entity class not found for name: ${entityName}`);
-  console.log('Available entities:', Array.from(ENTITY_REGISTRY.values()).map(m => m.name));
-  return undefined;
+  if (!entityName) return undefined;
+  return ENTITY_NAME_REGISTRY.get(entityName.toLowerCase());
 };
 
 // --- Computed Properties ---

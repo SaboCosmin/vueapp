@@ -79,6 +79,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import type { PropType } from 'vue';
 import { type FieldMetadata } from '~/utils/ui-metadata';
+import { useDisplayLogic } from '~/composables/useDisplayLogic';
 
 const props = defineProps({
   schema: {
@@ -99,28 +100,9 @@ const props = defineProps({
   },
 });
 
+const { getHasOneDisplay, getHasManyDisplay } = useDisplayLogic(toRef(props, 'allRelatedData'));
+
 const emit = defineEmits(['selectRow']);
-
-// --- Display Logic for Relationships ---
-const getHasOneDisplay = (value: any, fieldProps: Record<string, any>): string => {
-  if (!value) return '';
-  const { descriptor } = fieldProps;
-  if (typeof value === 'object' && value !== null) {
-    return value[descriptor] || value.id || '';
-  }
-  const id = value;
-  const { relatedEntityName } = fieldProps;
-  if (!relatedEntityName) return String(id);
-  const relatedData = props.allRelatedData[relatedEntityName.toLowerCase()];
-  if (!relatedData) return String(id);
-  const item = relatedData.find(d => d.id === id);
-  return item ? item[descriptor] : String(id);
-};
-
-const getHasManyDisplay = (values: any[], fieldProps: Record<string, any>): string[] => {
-  if (!values || values.length === 0) return [];
-  return values.map(value => getHasOneDisplay(value, fieldProps));
-};
 
 // --- Selection State ---
 const selectedItemId = ref<any | null>(null);
