@@ -1,10 +1,11 @@
+import {string} from "~/utils/form-fields/string.decorator";
+import {number} from "~/utils/form-fields/number.decorator";
+import {boolean} from "~/utils/form-fields/boolean.decorator";
 import ColorChip from "~/components/cells/ColorChip.vue";
+import { custom } from "~/utils/form-fields/custom.decorator";
 import ColorPicker from "~/components/form-fields/ColorPicker.vue";
-import { Entity, primaryKey, descriptor } from '~/utils/entity-system';
-import {
-    string,
-    boolean,
-} from '~/utils/ui-metadata';
+import { Entity, primaryKey } from "~/utils/entity.decorator";
+import { descriptor } from "~/utils/descriptor.decorator";
 
 @Entity({name: 'Product'})
 export default class Product {

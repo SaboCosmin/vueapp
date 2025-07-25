@@ -1,22 +1,57 @@
-// utils/ui-metadata.ts
-
 import 'reflect-metadata';
 import * as yup from 'yup';
-import type { AnySchema } from 'yup';
-import { ensureEntityModel, getEntityModel } from './entity-system';
 
-// --- Interfaces & Types ---
+export const METADATA_KEY = 'model:form-fields';
 export type FieldType = 'string' | 'number' | 'boolean' | 'select' | 'hasOne' | 'hasMany' | 'custom';
+export const ENTITY_REGISTRY = new Map<any, EntityMetadata>();
 export type ConditionExpression = (formData: Record<string, any>) => boolean;
+import type { AnySchema } from 'yup';
 
-// --- Option Interfaces for Decorators ---
-export interface StringFieldOptions { name: string; required?: boolean; validation?: yup.StringSchema; }
-export interface NumberFieldOptions { name: string; required?: boolean; min?: number; max?: number; validation?: yup.NumberSchema; }
-export interface BooleanFieldOptions { name: string; required?: boolean; validation?: yup.BooleanSchema; }
-export interface SelectFieldOptions { name: string; required?: boolean; options: string[]; validation?: yup.StringSchema; }
-export interface HasOneOptions { name: string; type: () => any; descriptor: string; }
-export interface HasManyOptions extends HasOneOptions {}
-export interface CustomFieldOptions { name: string; formComponent: any; cellComponent?: any; validation?: AnySchema; }
+
+export interface EntityOptions {
+    name: string;
+}
+
+export interface EntityMetadata {
+    name: string;
+    primaryKey: string;
+    descriptor: string;
+    fields: FieldMetadata[];
+}
+
+export interface CustomFieldProps {
+    name: string;
+    formComponent: any;
+    cellComponent?: any;
+    validation?: AnySchema;
+}
+
+export interface StringFieldProps {
+    name: string;
+    required?: boolean;
+    validation?: yup.StringSchema;
+}
+
+export interface NumberFieldProps {
+    name: string;
+    required?: boolean;
+    min?: number;
+    max?: number;
+    validation?: yup.NumberSchema;
+}
+
+export interface BooleanFieldPros {
+    name: string;
+    required?: boolean;
+    validation?: yup.BooleanSchema;
+}
+
+export interface SelectFieldProps {
+    name: string;
+    required?: boolean;
+    options: string[];
+    validation?: yup.StringSchema;
+}
 
 // --- Metadata Structure ---
 export interface FieldMetadata {
@@ -31,149 +66,40 @@ export interface FieldMetadata {
     cellComponent?: any;
 }
 
-// --- Internal Helper Function ---
-function registerFieldMetadata(target: any, propertyKey: string, metadata: Omit<FieldMetadata, 'key'>) {
-    const entityModel = ensureEntityModel(target.constructor);
-    entityModel.fields.push({ key: propertyKey, ...metadata });
+
+export interface HasOneProps {
+    name: string;
+    type: () => any;
+    descriptor: string;
 }
 
-// --- Modifier Decorators ---
-export function clear(expression: ConditionExpression): PropertyDecorator {
-    return (target: Object, propertyKey: string | symbol) => {
-        const entityModel = ensureEntityModel(target.constructor);
-        const lastField = entityModel.fields.find(f => f.key === propertyKey);
-        if (lastField) {
-            lastField.clear = expression;
-        }
-    };
+export interface HasManyProps extends HasOneProps {}
+
+/**
+ * A private helper function to handle the logic of attaching metadata to a class.
+ * This avoids duplicating the Reflect.get/defineMetadata calls in each decorator.
+ * @param target The prototype of the class.
+ * @param propertyKey The name of the property being decorated.
+ * @param metadata The metadata object for the field.
+ */
+export function registerFieldMetadata(target: any, propertyKey: string, metadata: Omit<FieldMetadata, 'key'>) {
+    const fields: FieldMetadata[] = Reflect.getMetadata(METADATA_KEY, target.constructor) || [];
+    fields.push({key: propertyKey, ...metadata});
+    Reflect.defineMetadata(METADATA_KEY, fields, target.constructor);
 }
 
-export function disabled(expression: ConditionExpression): PropertyDecorator {
-    return (target: Object, propertyKey: string | symbol) => {
-        const entityModel = ensureEntityModel(target.constructor);
-        const lastField = entityModel.fields.find(f => f.key === propertyKey);
-        if (lastField) {
-            lastField.disabled = expression;
-        }
-    };
+/**
+ * Retrieves the full entity metadata for a given class.
+ */
+export function getEntityMetadata(modelClass: any): EntityMetadata | undefined {
+    return ENTITY_REGISTRY.get(modelClass);
 }
 
-// --- Public Field Decorators ---
-
-export function string(options: StringFieldOptions): PropertyDecorator {
-    return (target: Object, propertyKey: string | symbol) => {
-        let stringValidation: yup.StringSchema = yup.string();
-        if (options.required) {
-            stringValidation = stringValidation.required(`${options.name} is required`);
-        }
-        const finalValidation = options.validation ? stringValidation.concat(options.validation) : stringValidation;
-        const { name, validation, ...props } = options;
-        registerFieldMetadata(target, String(propertyKey), {
-            label: name,
-            type: 'string',
-            props: props,
-            validation: finalValidation,
-        });
-    };
+/**
+ * A new schema parser that uses the central entity registry.
+ */
+export function parseEntitySchema(modelClass: any): FieldMetadata[] {
+    const meta = getEntityMetadata(modelClass);
+    return meta ? meta.fields : [];
 }
 
-export function number(options: NumberFieldOptions): PropertyDecorator {
-    return (target: Object, propertyKey: string | symbol) => {
-        let numberValidation: yup.NumberSchema = yup.number().transform((value, originalValue) => String(originalValue).trim() === '' ? undefined : value);
-        if (options.required) {
-            numberValidation = numberValidation.required(`${options.name} is required`);
-        }
-        if (options.min !== undefined) {
-            numberValidation = numberValidation.min(options.min);
-        }
-        if (options.max !== undefined) {
-            numberValidation = numberValidation.max(options.max);
-        }
-        const finalValidation = options.validation ? numberValidation.concat(options.validation) : numberValidation;
-        const { name, validation, ...props } = options;
-        registerFieldMetadata(target, String(propertyKey), {
-            label: name,
-            type: 'number',
-            props: props,
-            validation: finalValidation,
-        });
-    };
-}
-
-export function boolean(options: BooleanFieldOptions): PropertyDecorator {
-    return (target: Object, propertyKey: string | symbol) => {
-        let booleanValidation: yup.BooleanSchema = yup.boolean();
-        if (options.required) {
-            booleanValidation = booleanValidation.oneOf([true], `${options.name} is required`);
-        }
-        const finalValidation = options.validation ? booleanValidation.concat(options.validation) : booleanValidation;
-        const { name, validation, ...props } = options;
-        registerFieldMetadata(target, String(propertyKey), {
-            label: name,
-            type: 'boolean',
-            props: props,
-            validation: finalValidation,
-        });
-    };
-}
-
-export function select(options: SelectFieldOptions): PropertyDecorator {
-    return (target: Object, propertyKey: string | symbol) => {
-        let selectValidation: yup.StringSchema = yup.string();
-        if (options.required) {
-            selectValidation = selectValidation.required(`${options.name} is required`);
-        }
-        const finalValidation = options.validation ? selectValidation.concat(options.validation) : selectValidation;
-        const { name, validation, ...props } = options;
-        registerFieldMetadata(target, String(propertyKey), {
-            label: name,
-            type: 'select',
-            props: props,
-            validation: finalValidation,
-        });
-    };
-}
-
-export function hasOne(options: HasOneOptions): PropertyDecorator {
-    return (target: Object, propertyKey: string | symbol) => {
-        const { name, ...props } = options;
-        registerFieldMetadata(target, String(propertyKey), {
-            label: name,
-            type: 'hasOne',
-            props: {
-                ...props,
-                relatedEntityClass: options.type(),
-            },
-            validation: yup.mixed().nullable(),
-        });
-    };
-}
-
-export function hasMany(options: HasManyOptions): PropertyDecorator {
-    return (target: Object, propertyKey: string | symbol) => {
-        const { name, ...props } = options;
-        registerFieldMetadata(target, String(propertyKey), {
-            label: name,
-            type: 'hasMany',
-            props: {
-                ...props,
-                relatedEntityClass: options.type(),
-            },
-            validation: yup.array().nullable(),
-        });
-    };
-}
-
-export function custom(options: CustomFieldOptions): PropertyDecorator {
-    return (target: Object, propertyKey: string | symbol) => {
-        const { name, validation, formComponent, cellComponent, ...props } = options;
-        registerFieldMetadata(target, String(propertyKey), {
-            label: name,
-            type: 'custom',
-            props: props,
-            validation: validation,
-            formComponent: formComponent,
-            cellComponent: cellComponent,
-        });
-    };
-}

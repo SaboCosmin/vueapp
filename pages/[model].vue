@@ -72,8 +72,7 @@ const relatedDataCache = ref<Record<string, any[]>>({});
  * Fetches data for a related entity and caches it.
  */
 async function ensureRelatedData(entityName: string) {
-
-  const key = entityName.toLowerCase()
+  const key = entityName.toLowerCase();
   if (relatedDataCache.value[key]) return;
 
   try {
@@ -90,13 +89,8 @@ async function ensureRelatedData(entityName: string) {
 async function fetchAllRelatedData(schema: any[]) {
   const relatedEntities = new Set<string>();
   schema.forEach(field => {
-    // Check for the class, not the name
-    if ((field.type === 'hasOne' || field.type === 'hasMany') && field.props.relatedEntityClass) {
-      // Resolve the name at runtime here, which is safer
-      const entityModel = getEntityModel(field.props.relatedEntityClass);
-      if (entityModel?.name) {
-        relatedEntities.add(entityModel.name);
-      }
+    if ((field.type === 'hasOne' || field.type === 'hasMany') && field.props.relatedEntityName) {
+      relatedEntities.add(field.props.relatedEntityName);
     }
   });
 

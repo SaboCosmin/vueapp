@@ -10,36 +10,38 @@
     </option>
     <option v-else disabled :value="undefined">Select a {{ relatedEntityName }}</option>
     <option v-for="item in relatedData" :key="item.id" :value="item.id">
-      {{ item[descriptor] || item.id }}
+      {{ item.name || item.id }}
     </option>
   </select>
 </template>
 
 <script setup lang="ts">
-import { getEntityModel } from '~/utils/entity-system';
-
 const props = defineProps<{
+  // The modelValue is now expected to be the full object or null
   modelValue: { id: any; [key: string]: any } | null;
-  relatedEntityClass: any;
-  relatedData: { id: any; [key: string]: any }[];
-  descriptor: string;
+  relatedEntityName: string;
+  relatedData: { id: any; name?: string }[];
   onFetchData: (entityName: string) => Promise<void>;
 }>();
 
 const emit = defineEmits(['update:modelValue']);
 
-// Safely get the entity name at runtime, not at decorator-time
-const relatedEntityName = getEntityModel(props.relatedEntityClass)?.name || '';
-
 const handleChange = (event: Event) => {
   const selectedId = (event.target as HTMLSelectElement).value;
-  const foundItem = props.relatedData.find(item => String(item.id) === selectedId);
+
+  // Find the full object from the relatedData array based on the selected ID
+  const foundItem = props.relatedData.find(item => {
+    // The ID from the event is a string, so we compare loosely
+    return String(item.id) === selectedId;
+  });
+
+  // Emit the entire found object, or null if nothing was found
   emit('update:modelValue', foundItem || null);
 };
 
 const requestData = () => {
-  if (props.onFetchData && relatedEntityName) {
-    props.onFetchData(relatedEntityName);
+  if (props.onFetchData) {
+    props.onFetchData(props.relatedEntityName);
   }
 };
 </script>

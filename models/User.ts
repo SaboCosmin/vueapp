@@ -1,23 +1,18 @@
-import { Entity, primaryKey, descriptor } from '~/utils/entity-system';
-import {
-    string,
-    select,
-    boolean,
-    hasOne,
-    hasMany,
-    disabled,
-    clear
-} from '~/utils/ui-metadata';
+import { string } from "~/utils/form-fields/string.decorator";
+import { select } from "~/utils/form-fields/select.decorator";
+import { boolean } from "~/utils/form-fields/boolean.decorator";
+import { Entity, primaryKey } from "~/utils/entity.decorator";
 
 import * as yup from 'yup';
-import Product from '~/models/Product';
+import { hasOne } from "~/utils/form-fields/hasOne.decorator";
+import { hasMany } from "~/utils/form-fields/hasMany.decorator";
+import Product from "~/models/Product";
 
 @Entity({name: 'User'})
 export default class User {
     @primaryKey()
     id: number;
 
-    @descriptor()
     @string({
         name: 'Full Name',
         required: true,
