@@ -55,12 +55,15 @@ import { ref, onMounted } from 'vue';
 import { modelRegistry } from '~/utils/models.config';
 import { mockCrudService } from '~/services/mockCrudService';
 import { defineEntityStore } from "~/store/useEntityStore";
+import type { EntityStore } from '~/store/types';
 
 const route = useRoute();
 const modelName = ref(route.params.model as string);
 
-const entityStore = ref<any>(null);
+// Use the generic EntityStore type
+const entityStore = ref<EntityStore<any> | null>(null);
 const modelConfig = ref(modelRegistry[modelName.value]);
+
 const modelSchema = ref([]);
 const selectedItem = ref<any | null>(null);
 const isFormVisible = ref(false);

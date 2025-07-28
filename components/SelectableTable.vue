@@ -90,9 +90,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, toRef } from 'vue';
 import type { PropType } from 'vue';
 import { type FieldMetadata } from '~/utils/ui-metadata';
+import { useDisplayLogic } from '~/composables/useDisplayLogic';
 
 const props = defineProps({
   schema: {
@@ -119,6 +120,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:selectedItems']);
 
+// Use the composable for display logic
+const { getHasOneDisplay, getHasManyDisplay } = useDisplayLogic(toRef(props, 'allRelatedData'));
+
 // --- Selection State ---
 const selectedItems = ref<{ id: any; [key: string]: any }[]>([]);
 
@@ -134,7 +138,7 @@ const isSelected = (item: { id: any }) => {
 const toggleSelect = (item: { id: any; [key: string]: any }) => {
   if (isSelected(item)) {
     selectedItems.value = selectedItems.value.filter(
-      (selectedItem) => selectedItem.id !== item.id
+        (selectedItem) => selectedItem.id !== item.id
     );
   } else {
     selectedItems.value.push(item);
@@ -151,7 +155,7 @@ const toggleSelectAll = () => {
     // Remove all current page items from selection
     const currentPageIds = paginatedData.value.map(item => item.id);
     selectedItems.value = selectedItems.value.filter(
-      item => !currentPageIds.includes(item.id)
+        item => !currentPageIds.includes(item.id)
     );
   } else {
     // Add all current page items to selection
@@ -162,27 +166,6 @@ const toggleSelectAll = () => {
     });
   }
   emit('update:selectedItems', selectedItems.value);
-};
-
-// --- Display Logic for Relationships ---
-const getHasOneDisplay = (value: any, fieldProps: Record<string, any>): string => {
-  if (!value) return '';
-  const { descriptor } = fieldProps;
-  if (typeof value === 'object' && value !== null) {
-    return value[descriptor] || value.id || '';
-  }
-  const id = value;
-  const { relatedEntityName } = fieldProps;
-  if (!relatedEntityName) return String(id);
-  const relatedData = props.allRelatedData[relatedEntityName.toLowerCase()];
-  if (!relatedData) return String(id);
-  const item = relatedData.find(d => d.id === id);
-  return item ? item[descriptor] : String(id);
-};
-
-const getHasManyDisplay = (values: any[], fieldProps: Record<string, any>): string[] => {
-  if (!values || values.length === 0) return [];
-  return values.map(value => getHasOneDisplay(value, fieldProps));
 };
 
 // --- Pagination State ---

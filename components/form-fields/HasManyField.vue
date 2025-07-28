@@ -80,10 +80,12 @@
         </div>
         
         <div class="modal-action">
-          <button class="btn btn-primary" @click="confirmSelection">Confirm</button>
-          <form method="dialog">
-            <button class="btn">Cancel</button>
-          </form>
+          <div class="modal-action">
+            <button class="btn btn-primary" @click="confirmSelection" type="button">Confirm</button>
+            <form method="dialog">
+              <button class="btn">Cancel</button>
+            </form>
+          </div>
         </div>
       </div>
     </dialog>

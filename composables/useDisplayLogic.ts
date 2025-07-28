@@ -1,4 +1,4 @@
-export function useDisplayLogic(allRelatedData: globalThis.Ref<Record<string, any[]>>) {
+export function useDisplayLogic(allRelatedData: Ref<Record<string, any[]>>) {
     const getHasOneDisplay = (value: any, fieldProps: Record<string, any>): string => {
         if (!value) return '';
         const { descriptor } = fieldProps;

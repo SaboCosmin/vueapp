@@ -1,29 +1,25 @@
 import { defineStore } from 'pinia';
 import { mockCrudService } from '~/services/mockCrudService';
+import type { EntityState, EntityGetters, EntityActions } from './types';
 
 /**
  * A factory function that creates a Pinia store for a specific entity.
  * @param entityName The key for the entity (e.g., 'user', 'product').
  */
-export const defineEntityStore = (entityName: string) => {
-    return defineStore(entityName, {
-        // STATE: The data for our store
-        state: () => ({
-            items: [] as any[],
+export const defineEntityStore = <T>(entityName: string) => {
+    // The explicit generic here is now correct with the updated types
+    return defineStore<string, EntityState<T>, EntityGetters<T>, EntityActions<T>>(entityName, {
+        state: (): EntityState<T> => ({
+            items: [],
             isLoading: false,
-            error: null as string | null,
+            error: null,
         }),
 
-        // GETTERS: Computed properties derived from state
         getters: {
             allItems: (state) => state.items,
         },
 
-        // ACTIONS: Functions that perform asynchronous operations and mutate state
         actions: {
-            /**
-             * Fetches all items from the service and populates the store.
-             */
             async fetchAll() {
                 this.isLoading = true;
                 this.error = null;
@@ -36,10 +32,7 @@ export const defineEntityStore = (entityName: string) => {
                 }
             },
 
-            /**
-             * Creates a new item and then refreshes the list.
-             */
-            async createItem(newItem: any) {
+            async createItem(newItem: T) {
                 this.isLoading = true;
                 this.error = null;
                 try {
@@ -52,10 +45,7 @@ export const defineEntityStore = (entityName: string) => {
                 }
             },
 
-            /**
-             * Updates an item and then refreshes the list.
-             */
-            async updateItem(itemToUpdate: any) {
+            async updateItem(itemToUpdate: T) {
                 this.isLoading = true;
                 this.error = null;
                 try {
@@ -68,9 +58,6 @@ export const defineEntityStore = (entityName: string) => {
                 }
             },
 
-            /**
-             * Deletes an item and then refreshes the list.
-             */
             async deleteItem(id: number | string) {
                 this.isLoading = true;
                 this.error = null;
